@@ -1,5 +1,6 @@
 from flask_restful import Resource
 from repository import Repository
+from flask import request
 
 
 repo = Repository()
@@ -7,7 +8,13 @@ repo = Repository()
 
 class Event(Resource):
     def get(self, event_id=1):
-        return {'Events': f'{event_id} works'}
+        return repo.event_get_by_id(int(event_id)).__dict__
+
+    
+    def post(self):
+        data = request.get_json()
+        print(data)
+        return repo.event_add(data).__dict__
 
 
 class EventList(Resource):

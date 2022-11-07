@@ -1,4 +1,8 @@
 from flask_restful import Resource
+from repository import Repository
+
+
+repo = Repository()
 
 
 class Event(Resource):
@@ -8,5 +12,5 @@ class Event(Resource):
 
 class EventList(Resource):
     def get(self):
-        return {'EventList': 'works'}
+        return [event.__dict__ for event in repo.events_get_all()]
 

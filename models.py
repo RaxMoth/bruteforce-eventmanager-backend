@@ -1,5 +1,5 @@
 class EventModel:
-    def __init__(self, id, title, description='', date=None, location='', user_id=-1, likes=0, image=''):
+    def __init__(self, title, id=1, description='', date=None, location='', user_id=-1, likes=0, image=''):
         self.id = id
         self.title = title
         self.description = description

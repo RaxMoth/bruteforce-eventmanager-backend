@@ -20,13 +20,13 @@ class ApiTests(TestCase):
             response = client.get(f'{BASE_URL}/Events')
             assert response.status_code == 200
             events = json.loads(response.data)
-            assert events[0]['id'] == 1
+            assert events[1]['inasd'] == 4
 
     @patch('routes.Event.get')
-    def test_event_by_id(self, test_patch):
+    def test_events(self, test_patch):
         with app.test_client() as client:
             # test_patch.return_value = [event1.__dict__, event2.__dict__]
-            response = client.get(f'{BASE_URL}/Events/1')
+            response = client.get(f'{BASE_URL}/Events')
             assert response.status_code == 200
             events = json.loads(response.data)
             assert events[0]['id'] == 1

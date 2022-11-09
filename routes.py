@@ -11,9 +11,15 @@ class Event(Resource):
 
     def get(self, event_id=None, title=None):
         if event_id is not None:
-            return self.repo.get_event_by_id(int(event_id)).__dict__
+            event = self.repo.get_event_by_id(int(event_id))
+            if event is None:
+                return {"idError": f"Event with the id {event_id} not found"}
+            return event.__dict__
         if title is not None:
-            return self.repo.get_event_by_title(title).__dict__
+            event = self.repo.get_event_by_title(title)
+            if event is None:
+                return {"titleError": f"Event with the title {title} not found"}
+            return event.__dict__
 
 
 class EventList(Resource):

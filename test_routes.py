@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 from flask import Request
 from app import app
 
-event1 = EventModel(title='test Title 1', id=1, user_id=101, likes=0)
-event2 = EventModel(title='test Title 2', id=2, user_id=201, likes=1)
+event1 = EventModel(title='test Title 1', id=1, user_id='Admin', likes=0)
+event2 = EventModel(title='test Title 2', id=2, user_id='Admin', likes=1)
 
 
 def test_eventlist_get():

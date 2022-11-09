@@ -18,6 +18,8 @@ user = os.environ.get('USER', default='postgres')
 password = os.environ.get('PASSWORD', default='postgres')
 MIN = os.environ.get('MIN', default=1)
 MAX = os.environ.get('MAX', default=5)
+DEBUG = os.environ.get('DEBUG', default=True)
+PORT = os.environ.get('PORT', default=5000)
 
 app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, database=database, port=db_port, user=user, password=password)
 api.add_resource(EventList, f'{BASE_URL}/Events')
@@ -32,5 +34,5 @@ def close_conn(e):
         print('released connection back to pool')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=32413)
+    app.run(debug=True, port=PORT)
 

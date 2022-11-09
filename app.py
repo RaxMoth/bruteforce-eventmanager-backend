@@ -11,13 +11,13 @@ CORS(app)
 api = Api(app)
 BASE_URL = '/api'
 
-host = os.environ['HOST']
-database = os.environ['DATABASE']
-db_port = os.environ['DB_PORT']
-user = os.environ['USER']
-password = os.environ['PASSWORD']
-MIN = os.environ['MIN']
-MAX = os.environ['MAX']
+host = os.environ.get('HOST', default='localhost')
+database = os.environ.get('DATABASE', default='events')
+db_port = os.environ.get('DB_PORT', default=5432)
+user = os.environ.get('USER', default='postgres')
+password = os.environ.get('PASSWORD', default='postgres')
+MIN = os.environ.get('MIN', default=1)
+MAX = os.environ.get('MAX', default=5)
 
 app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, database=database, port=db_port, user=user, password=password)
 api.add_resource(EventList, f'{BASE_URL}/Events')

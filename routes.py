@@ -1,6 +1,7 @@
 from flask_restful import Resource, request
 from flask import Request
 from repository import Repository
+from flask import request
 
 repository = Repository()
 
@@ -21,6 +22,13 @@ class Event(Resource):
                 return {"titleError": f"Event with the title {title} not found"}
             return event.__dict__
 
+    def put (self, req = request):
+        data = req.get_json()
+        event = self.repo.update_event(data)
+        return event.__dict__
+
+    def delete (self, event_id):
+        self.repo.delete_event(event_id)
 
 class User(Resource):
 

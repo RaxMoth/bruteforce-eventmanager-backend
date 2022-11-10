@@ -9,7 +9,7 @@ from psycopg2 import pool
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
-BASE_URL = '/api'
+BASE_URL = os.environ.get('BASE_URL', default='/api')
 
 host = os.environ.get('HOST', default='localhost')
 database = os.environ.get('DATABASE', default='events')

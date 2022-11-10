@@ -37,5 +37,5 @@ def close_conn(e):
         print('released connection back to pool')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=PORT)
+    app.run(debug=DEBUG, port=PORT)
 

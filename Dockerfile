@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.9
+FROM --platform=linux/amd64 python:3.9.5-slim-buster
 # set work directory
 WORKDIR /usr/
 
@@ -20,8 +20,6 @@ RUN pip install gunicorn
 # copy project
 COPY . /usr/
 
-
-EXPOSE 8000
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 app:app
 
 

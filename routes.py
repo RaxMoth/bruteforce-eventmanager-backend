@@ -22,6 +22,23 @@ class Event(Resource):
             return event.__dict__
 
 
+class User(Resource):
+
+    def __init__(self, repo=Repository()):
+        self.repo = repo
+
+    def get(self, username):
+        if username is not None:
+            user = self.repo.get_user_by_id(username)
+            if user is None:
+                return {"idError": f"Event with the id {username} not found"}
+            return user.__dict__
+
+    def post(self, req=request):
+        data = req.get_json()
+        return self.repo.add_user(data).__dict__
+
+
 class EventList(Resource):
     def __init__(self, repo=Repository()):
         self.repo = repo
@@ -32,4 +49,3 @@ class EventList(Resource):
     def post(self, req=request):
         data = req.get_json()
         return self.repo.add_event(data).__dict__
-

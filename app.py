@@ -1,6 +1,6 @@
 from flask import Flask, g
 from flask_restful import Api
-from routes import Event, EventList
+from routes import Event, EventList, User
 from flask_cors import CORS
 import os
 from psycopg2 import pool
@@ -23,6 +23,7 @@ PORT = os.environ.get('PORT', default=5000)
 
 app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, database=database, port=db_port, user=user, password=password)
 api.add_resource(EventList, f'{BASE_URL}/Events')
+api.add_resource(User, f'{BASE_URL}/user/<username>')
 api.add_resource(Event, f'{BASE_URL}/Events/<event_id>', f'{BASE_URL}/eventbytitle/<title>')
 
 

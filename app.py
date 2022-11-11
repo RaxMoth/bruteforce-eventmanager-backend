@@ -35,6 +35,7 @@ def close_conn(e):
     if db is not None:
         app.config['pSQL_pool'].putconn(db)
         print('released connection back to pool')
+        print('redeployment works!')
 
 if __name__ == '__main__':
     app.run(debug=DEBUG, port=PORT)

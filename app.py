@@ -21,8 +21,10 @@ MAX = os.environ.get('MAX', default=5)
 
 app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, database=database, port=db_port, user=user, password=password)
 api.add_resource(EventList, f'{BASE_URL}/events')
-api.add_resource(Event, f'{BASE_URL}/event', f'{BASE_URL}/event/<event_id>', f'{BASE_URL}/eventbytitle/<title>')
-
+api.add_resource(Event, f'{BASE_URL}/event') #f'{BASE_URL}/event/<event_id>', f'{BASE_URL}/eventbytitle/<title>')
+api.add_resource(Event, f'{BASE_URL}/event/<event_id>', endpoint ='get_event')
+api.add_resource(Event, f'{BASE_URL}/event/likes/<event_id>', endpoint ='get_#likes')
+api.add_resource(Event, f'{BASE_URL}/event/like', endpoint ='like_event')
 
 
 

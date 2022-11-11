@@ -10,7 +10,11 @@ class Event(Resource):
     def __init__(self, repo=Repository()):
         self.repo = repo
 
-    def get(self, event_id=None, title=None):
+    def get(self, event_id=None, title=None, req = request):
+        if request.endpoint == 'get_#likes':
+            print("getting number of likes")
+            event = self.repo.get_likes(int(event_id))
+
         if event_id is not None:
             event = self.repo.get_event_by_id(int(event_id))
             if event is None:
@@ -29,6 +33,12 @@ class Event(Resource):
 
     def delete (self, event_id):
         self.repo.delete_event(event_id)
+
+    def post (self, req = request):
+        data = req.get_json()
+        if request.endpoint == 'like_event':
+            event = self.repo.like_event(data)
+            return event.__dict__
 
 class EventList(Resource):
     def __init__(self, repo=Repository()):

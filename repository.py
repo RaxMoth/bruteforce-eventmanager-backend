@@ -1,6 +1,7 @@
 from models import EventModel, UserModel
 import psycopg2
-from flask import current_app, g
+from flask import current_app, g, jsonify
+from datetime import datetime
 
 # user1 = UserModel(1, 'Lalit')
 # user2 = UserModel(2, 'Max')
@@ -95,6 +96,7 @@ class Repository:
         event = None
         if conn:
             ps_cursor = conn.cursor()
+
             ps_cursor.execute(f"UPDATE events SET title = %s,  description = %s, loc= %s, eventdate = %s WHERE event_id= %s  RETURNING event_id", (data['title'], data['description'], data['location'], data['date'], data['id']))
             conn.commit()
             event_id = ps_cursor.fetchone()[0]
@@ -106,6 +108,29 @@ class Repository:
             ps_cursor.close()
             event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'], user_id=data['id'], location=data['location'], description=data['description'], date=data['date'])
         return event
+
+    def like_event(self, data):
+        print("liking event")
+        conn = self.get_db()
+        event = None
+        if conn:
+            ps_cursor = conn.cursor()
+            if 'user_id' not in data:
+                data['user_id'] = 'Admin'
+            data['liked_time'] = datetime.now()
+            print(data)
+            ps_cursor.execute(f"INSERT into events_liked (username, event_id, liked_time) VALUES (%s, %s, %s) RETURNING id",(data["user_id"], data["id"], data["liked_time"]))
+            conn.commit()
+            event_id = ps_cursor.fetchone()[0]
+            if id is None:
+                ps_cursor.close()
+                print(id)
+                print("Like unsuccessful")
+                return None
+            ps_cursor.close()
+            event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'], user_id=data['id'], location=data['location'], description=data['description'], date=data['date'])
+        return event
+    
     
     def delete_event(self, event_id):
         conn = self.get_db()
@@ -116,7 +141,21 @@ class Repository:
             conn.commit()
             ps_cursor.close()
         
-
+    def get_likes(self, event_id):
+        print("number of likes of event")
+        conn = self.get_db()
+        event = None
+        if conn:
+            ps_cursor = conn.cursor()
+            ps_cursor.execute(f"SELECT SUM (CASE WHEN event_id = %s THEN 1 ELSE 0 END) FROM events_liked RETURNING sum",[event_id])
+            conn.commit()
+            event_records = ps_cursor.fetchall()
+            numOfLikes = event_records[0]
+            print(sum, numOfLikes[0])
+            ps_cursor.close()
+            data = {"id": event_id, "likes": numOfLikes[0]}
+            #event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'], user_id=data['id'], location=data['location'], description=data['description'], date=data['date'])
+        return jsonify(data)
 
 
 

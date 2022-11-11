@@ -98,7 +98,7 @@ class Repository:
         user = None
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute(f"Select username, password, email, u_fname, u_lname from users where username = %s;", (username,))
+            ps_cursor.execute(f"Select username, pass, u_email, u_fname, u_lname from users where username = %s;", (username,))
             user_records = ps_cursor.fetchall()
             if len(user_records) < 1:
                 print("User not found, check your username.")

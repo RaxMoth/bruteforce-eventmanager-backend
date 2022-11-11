@@ -53,7 +53,7 @@ class Repository:
         if conn:
             ps_cursor = conn.cursor()
             title += '%'
-            ps_cursor.execute(f"Select event_id, title, image, username, description, eventdate, loc from events where title similar to %s", (title))
+            ps_cursor.execute(f"Select event_id, title, image, username, description, eventdate, loc from events where title similar to %s", (title,))
             event_records = ps_cursor.fetchall()
             if len(event_records) < 1:
                 print("Event not found, check your title.")

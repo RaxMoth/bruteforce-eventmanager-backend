@@ -27,9 +27,12 @@ class Event(Resource):
             return event.__dict__
 
     def put (self, req = request):
-        data = req.get_json()
-        event = self.repo.update_event(data)
-        return event.__dict__
+       if request.endpoint == 'update_event':
+            print("updating event")
+            data = req.get_json()
+            print("data")
+            event = self.repo.update_event(data)
+            return event.__dict__
 
     def delete (self, event_id):
         self.repo.delete_event(event_id)

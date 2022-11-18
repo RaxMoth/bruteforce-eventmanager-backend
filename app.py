@@ -25,7 +25,7 @@ app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, databas
 
 api.add_resource(EventList, f'{BASE_URL}/events')
 api.add_resource(Event, f'{BASE_URL}/event/<event_id>', f'{BASE_URL}/eventbytitle/<title>')
-api.add_resource(Event, f'{BASE_URL}/event/<event_id>', endpoint ='update_event')
+api.add_resource(Event, f'{BASE_URL}/event', endpoint ='update_event')
 api.add_resource(Event, f'{BASE_URL}/event/likes/<event_id>', endpoint ='get_#likes')
 api.add_resource(Event, f'{BASE_URL}/event/like', endpoint ='like_event')
 api.add_resource(User, f'{BASE_URL}/user/<username>')

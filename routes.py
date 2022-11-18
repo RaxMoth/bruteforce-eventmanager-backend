@@ -30,7 +30,7 @@ class Event(Resource):
        if request.endpoint == 'update_event':
             print("updating event")
             data = req.get_json()
-            print("data")
+            print(data)
             event = self.repo.update_event(data)
             return event.__dict__
 

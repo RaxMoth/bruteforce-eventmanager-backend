@@ -1,7 +1,7 @@
 import base64
 import uuid
 
-from models import EventModel, UserModel
+from models import EventModel, UserModel, CommentModel
 import psycopg2
 from flask import current_app, g, jsonify
 from datetime import datetime
@@ -92,11 +92,78 @@ class Repository:
             ps_cursor.close()
         return event
 
+    def get_events_by_user(self, current_user):
+        event_list = []
+        conn = self.get_db()
+        if conn:
+            ps_cursor = conn.cursor()
+            ps_cursor.execute(
+                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where username=%s", (current_user))
+            event_records = ps_cursor.fetchall()
+            for row in event_records:
+                ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
+                                  (current_user, row[0]))
+                isLiked = False
+                if len(ps_cursor.fetchall()) > 0:
+                    isLiked = True
+                event_list.append(
+                    EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], location=row[4], date=str(row[5]),
+                               description=row[6], likes=row[7], isLiked=isLiked))
+            ps_cursor.close()
+        return event_list
+
+    def get_events_liked_by_user(self, current_user):
+        event_list = []
+        conn = self.get_db()
+        if conn:
+            ps_cursor = conn.cursor()
+            ps_cursor.execute(
+                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where event_id=(select event_id from events_liked where username=%s)",
+                current_user)
+            event_records = ps_cursor.fetchall()
+            for row in event_records:
+                ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
+                                  (current_user, row[0]))
+                isLiked = False
+                if len(ps_cursor.fetchall()) > 0:
+                    isLiked = True
+                event_list.append(
+                    EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], location=row[4], date=str(row[5]),
+                               description=row[6], likes=row[7], isLiked=isLiked))
+            ps_cursor.close()
+        return event_list
+
+    def get_comments_by_event(self, event_id):
+        comments = []
+        conn = self.get_db()
+        if conn:
+            ps_cursor = conn.cursor()
+            ps_cursor.execute(f"Select comment_id, event_id, u_comment, comment_date, username from comments where event_id=%s", event_id)
+            comments_sql = ps_cursor.fetchall()
+            for row in comments_sql:
+                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=row[3], username=row[4]))
+            ps_cursor.close()
+        return comments
+
     def get_db(self):
         if 'db' not in g:
             g.db = current_app.config['pSQL_pool'].getconn()
         return g.db
 
+    def add_comment(self, data, current_user):
+        conn = self.get_db()
+        data['username'] = current_user
+        if conn:
+            ps_cursor = conn.cursor()
+            if 'comment_date' not in data:
+                data['comment_date'] = ''
+            try:
+                ps_cursor.execute(f"INSERT INTO COMMENTS (u_comment, event_id, username, comment_date) VALUES (%s, %s, %s, %s) RETURNING comment_id", (data['u_comment'], data['event_id'], data['username'], data['comment_date']))
+                conn.commit()
+                print("Comment posted successfully")
+            except Exception as e:
+                print("Comment posting failed")
+                print(e)
     def add_event(self, data, username):
         conn = self.get_db()
         event = None
@@ -254,4 +321,6 @@ class Repository:
             user = UserModel(user_id=username, user_email=data['u_email'], password=data['password'],
                              first_name=data['u_fname'], last_name=data['u_lname'])
         return user
+
+
 # if __name__ == '__main__':

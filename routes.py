@@ -32,6 +32,7 @@ class Event(Resource):
                 return {"titleError": f"Event with the title {title} not found"}
             return event.__dict__
 
+
     def put(self, req=request):
         try:
             decoded_token = auth.verify_id_token(self.uid)
@@ -42,6 +43,7 @@ class Event(Resource):
         except firebase_admin._auth_utils.InvalidIdTokenError as e:
             print('User unable to be verified.')
             print(e)
+
 
 
     def delete(self, event_id):

@@ -142,7 +142,6 @@ class Repository:
         event = None
         if conn:
             ps_cursor = conn.cursor()
-
             ps_cursor.execute(f"UPDATE events SET title = %s,  description = %s, loc= %s, eventdate = %s WHERE event_id= %s  RETURNING event_id", (data['title'], data['description'], data['location'], data['date'], data['id']))
             conn.commit()
             event_id = ps_cursor.fetchone()[0]

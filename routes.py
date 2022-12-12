@@ -25,7 +25,7 @@ class Event(Resource):
             try:
                 decoded_token = auth.verify_id_token(self.uid)
                 print("User verified")
-                event = self.repo.get_event_by_id(int(event_id))
+                event = self.repo.get_event_by_id(int(event_id), decoded_token['uid'])
                 if event is None:
                     return {"idError": f"Event with the id {event_id} not found"}
                 return event.__dict__
@@ -37,7 +37,7 @@ class Event(Resource):
             try:
                 decoded_token = auth.verify_id_token(self.uid)
                 print("User verified")
-                event = self.repo.get_event_by_title(title)
+                event = self.repo.get_event_by_title(title, current_user=decoded_token['uid'])
                 if event is None:
                     return {"titleError": f"Event with the title {title} not found"}
                 return event.__dict__
@@ -74,7 +74,7 @@ class Event(Resource):
             print("User verified")
             data = req.get_json()
             if request.endpoint == 'like_event':
-                event = self.repo.like_event(data)
+                event = self.repo.like_event(data, decoded_token['uid'])
                 return event.__dict__
         except Exception as e:
             print('User unable to be verified or some other error has occurred')
@@ -109,7 +109,7 @@ class EventList(Resource):
         try:
             decoded_token = auth.verify_id_token(self.uid)
             print("Loading all events...")
-            return [event.__dict__ for event in self.repo.get_all_events()]
+            return [event.__dict__ for event in self.repo.get_all_events(decoded_token['uid'])]
         except Exception as e:
             print('User unable to be verified.')
             print(e)

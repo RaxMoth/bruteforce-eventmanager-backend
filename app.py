@@ -27,7 +27,7 @@ MIN = os.environ.get('MIN', default=1)
 MAX = os.environ.get('MAX', default=5)
 DEBUG = os.environ.get('DEBUG', default=True)
 PORT = os.environ.get('PORT', default=5000)
-print(host, database, )
+# print(host, database, )
 app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, database=database, port=db_port, user=user, password=password)
 
 

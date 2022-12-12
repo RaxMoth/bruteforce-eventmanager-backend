@@ -1,7 +1,13 @@
+import base64
+import uuid
+
 from models import EventModel, UserModel
 import psycopg2
 from flask import current_app, g, jsonify
 from datetime import datetime
+from google.cloud import storage
+
+
 
 # user1 = UserModel(1, 'Lalit')
 # user2 = UserModel(2, 'Max')
@@ -70,18 +76,40 @@ class Repository:
             g.db = current_app.config['pSQL_pool'].getconn()
         return g.db
 
-    def add_event(self, data):
+    def add_event(self, data, username):
         conn = self.get_db()
         event = None
+        data['username'] = username
         if conn:
             ps_cursor = conn.cursor()
             if 'username' not in data: # remove this!
-                data['username'] ='Admin'
+                data['username'] = username
             if 'image' not in data:
                 data['image'] = ''
+            else:
+                print("Trying to create new image...")
+                image = data['image']
+                storage_client = storage.Client()
+                print(storage_client.list_buckets())
+                bucket = storage_client.bucket("event_images_roi_training")
+                # print(bucket)
+                blob_name = "event/image_"+username+"_"+str(uuid.uuid4())
+                print(blob_name)
+                blob = bucket.blob(blob_name)
+                img_type, image = image.split(',')
+                decoded_image = base64.b64decode(image)
+                img_format = img_type.split('/')[1].split(';')[0]
+                print(img_format, len(decoded_image))
+                blob.upload_from_string(decoded_image, content_type=img_format)
+                blob.make_public()
+                print("Image uploaded to google storage successfully. Public media link is: ", blob.media_link)
+                data['image'] = "https://storage.googleapis.com/event_images_roi_training/"+blob_name
 
-            ps_cursor.execute(f"INSERT INTO events (title, description, username, image, loc, eventdate) VALUES (%s, %s, %s, %s, %s, %s) RETURNING event_id", (data['title'], data['description'], data['username'], data['image'], data['location'], data['date']))
-            conn.commit()
+            try:
+                ps_cursor.execute(f"INSERT INTO events (title, description, username, image, loc, eventdate) VALUES (%s, %s, %s, %s, %s, %s) RETURNING event_id", (data['title'], data['description'], data['username'], data['image'], data['location'], data['date']))
+                conn.commit()
+            except Exception as e:
+                print("Error: ", e)
             event_id = ps_cursor.fetchone()[0]
             if event_id is None:
                 ps_cursor.close()
@@ -149,12 +177,12 @@ class Repository:
         return event
     
     
-    def delete_event(self, event_id):
+    def delete_event(self, event_id, user_id):
         conn = self.get_db()
         if conn:
             ps_cursor = conn.cursor()
             print(event_id, str(event_id))
-            ps_cursor.execute(f"DELETE FROM events WHERE event_id= %s;",  [event_id])
+            ps_cursor.execute(f"DELETE FROM events WHERE event_id= %s AND username = %s;",  [event_id, user_id])
             conn.commit()
             ps_cursor.close()
 

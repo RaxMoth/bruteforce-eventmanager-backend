@@ -110,7 +110,7 @@ class EventList(Resource):
             decoded_token = auth.verify_id_token(self.uid)
             print("Loading all events...")
             return [event.__dict__ for event in self.repo.get_all_events()]
-        except firebase_admin._auth_utils.InvalidIdTokenError as e:
+        except Exception as e:
             print('User unable to be verified.')
             print(e)
             return 'User unable to be verified'

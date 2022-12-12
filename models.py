@@ -21,3 +21,9 @@ class UserModel:
         self.last_name = last_name
 
 
+
+class CommentModel:
+    def __init__(self):
+        pass
+
+

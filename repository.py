@@ -8,7 +8,6 @@ from datetime import datetime
 from google.cloud import storage
 
 
-
 # user1 = UserModel(1, 'Lalit')
 # user2 = UserModel(2, 'Max')
 # event1 = EventModel(1, 'Event 1')
@@ -24,52 +23,74 @@ from google.cloud import storage
 
 
 class Repository:
-    def get_all_events(self):
+    def get_all_events(self, current_user):
         event_list = []
         conn = self.get_db()
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute("Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events")
+            ps_cursor.execute(
+                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events")
             event_records = ps_cursor.fetchall()
             for row in event_records:
-                event_list.append(EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], location=row[4], date=str(row[5]), description=row[6], likes=row[7]))
+                ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
+                                  (current_user, row[0]))
+                isLiked = False
+                if len(ps_cursor.fetchall()) > 0:
+                    isLiked = True
+                event_list.append(
+                    EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], location=row[4], date=str(row[5]),
+                               description=row[6], likes=row[7], isLiked=isLiked))
             ps_cursor.close()
         return event_list
 
-
-    def get_event_by_id(self, event_id):
+    def get_event_by_id(self, event_id, current_user):
         conn = self.get_db()
         event = None
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute(f"Select event_id, title, image, username, description, eventdate, loc, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where event_id = %s;", [event_id])
+            ps_cursor.execute(
+                f"Select event_id, title, image, username, description, eventdate, loc, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where event_id = %s;",
+                [event_id])
             event_records = ps_cursor.fetchall()
             if len(event_records) < 1:
                 print("Event not found, check your id.")
                 ps_cursor.close()
                 return None
             for row in event_records:
-                event = EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], description= row[4], date=str(row[5]), location=row[6], likes=row[7])
+                ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
+                                  (current_user, row[0]))
+                isLiked = False
+                if len(ps_cursor.fetchall()) > 0:
+                    isLiked = True
+                event = EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], description=row[4],
+                                   date=str(row[5]), location=row[6], likes=row[7], isLiked=isLiked)
             ps_cursor.close()
         return event
 
-    def get_event_by_title(self, title):
+    def get_event_by_title(self, title, current_user):
         conn = self.get_db()
         event = None
         if conn:
             ps_cursor = conn.cursor()
             title += '%'
-            ps_cursor.execute(f"Select event_id, title, image, username, description, eventdate, loc, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where title similar to %s", (title,))
+            ps_cursor.execute(
+                f"Select event_id, title, image, username, description, eventdate, loc, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where title similar to %s",
+                (title,))
             event_records = ps_cursor.fetchall()
             if len(event_records) < 1:
                 print("Event not found, check your title.")
                 ps_cursor.close()
                 return None
             for row in event_records:
-                event = EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], description= row[4], date=str(row[5]), location=row[6], likes = row[7])
+                ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
+                                  (current_user, row[0]))
+                isLiked = False
+                if len(ps_cursor.fetchall()) > 0:
+                    isLiked = True
+                event = EventModel(id=row[0], title=row[1], image=row[2], user_id=row[3], description=row[4],
+                                   date=str(row[5]), location=row[6], likes=row[7], isLiked=isLiked)
             ps_cursor.close()
         return event
-
 
     def get_db(self):
         if 'db' not in g:
@@ -82,7 +103,7 @@ class Repository:
         data['username'] = username
         if conn:
             ps_cursor = conn.cursor()
-            if 'username' not in data: # remove this!
+            if 'username' not in data:  # remove this!
                 data['username'] = username
             if 'image' not in data:
                 data['image'] = ''
@@ -93,7 +114,7 @@ class Repository:
                 print(storage_client.list_buckets())
                 bucket = storage_client.bucket("event_images_roi_training")
                 # print(bucket)
-                blob_name = "event/image_"+username+"_"+str(uuid.uuid4())
+                blob_name = "event/image_" + username + "_" + str(uuid.uuid4())
                 print(blob_name)
                 blob = bucket.blob(blob_name)
                 img_type, image = image.split(',')
@@ -103,10 +124,13 @@ class Repository:
                 blob.upload_from_string(decoded_image, content_type=img_format)
                 blob.make_public()
                 print("Image uploaded to google storage successfully. Public media link is: ", blob.media_link)
-                data['image'] = "https://storage.googleapis.com/event_images_roi_training/"+blob_name
+                data['image'] = "https://storage.googleapis.com/event_images_roi_training/" + blob_name
 
             try:
-                ps_cursor.execute(f"INSERT INTO events (title, description, username, image, loc, eventdate) VALUES (%s, %s, %s, %s, %s, %s) RETURNING event_id", (data['title'], data['description'], data['username'], data['image'], data['location'], data['date']))
+                ps_cursor.execute(
+                    f"INSERT INTO events (title, description, username, image, loc, eventdate) VALUES (%s, %s, %s, %s, %s, %s) RETURNING event_id",
+                    (data['title'], data['description'], data['username'], data['image'], data['location'],
+                     data['date']))
                 conn.commit()
             except Exception as e:
                 print("Error: ", e)
@@ -117,23 +141,25 @@ class Repository:
                 print("insertion unsuccessful")
                 return None
             ps_cursor.close()
-            event = EventModel(id=event_id, title=data['title'], likes=0, image=data['image'], user_id=data['username'], description=data["description"], location=data["location"], date=data["date"])
+            event = EventModel(id=event_id, title=data['title'], likes=0, image=data['image'], user_id=data['username'],
+                               description=data["description"], location=data["location"], date=data["date"])
         return event
-
 
     def get_user_by_id(self, username):
         conn = self.get_db()
         user = None
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute(f"Select username, pass, u_email, u_fname, u_lname from users where username = %s;", (username,))
+            ps_cursor.execute(f"Select username, pass, u_email, u_fname, u_lname from users where username = %s;",
+                              (username,))
             user_records = ps_cursor.fetchall()
             if len(user_records) < 1:
                 print("User not found, check your username.")
                 ps_cursor.close()
                 return None
             for row in user_records:
-                user = UserModel(user_id=row[0], password=row[1], user_email=row[2], first_name=row[3], last_name=row[4])
+                user = UserModel(user_id=row[0], password=row[1], user_email=row[2], first_name=row[3],
+                                 last_name=row[4])
             ps_cursor.close()
         return user
 
@@ -142,7 +168,9 @@ class Repository:
         event = None
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute(f"UPDATE events SET title = %s,  description = %s, loc= %s, eventdate = %s WHERE event_id= %s  RETURNING event_id", (data['title'], data['description'], data['location'], data['date'], data['id']))
+            ps_cursor.execute(
+                f"UPDATE events SET title = %s,  description = %s, loc= %s, eventdate = %s WHERE event_id= %s  RETURNING event_id",
+                (data['title'], data['description'], data['location'], data['date'], data['id']))
             conn.commit()
             event_id = ps_cursor.fetchone()[0]
             if event_id is None:
@@ -151,41 +179,55 @@ class Repository:
                 print("Update unsuccessful")
                 return None
             ps_cursor.close()
-            event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'], user_id=data['id'], location=data['location'], description=data['description'], date=data['date'])
+            event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'],
+                               user_id=data['id'], location=data['location'], description=data['description'],
+                               date=data['date'])
         return event
 
-    def like_event(self, data):
+    def like_event(self, data, user_id='Admin'):
         print("liking event")
         conn = self.get_db()
         event = None
         if conn:
             ps_cursor = conn.cursor()
-            if 'user_id' not in data:
-                data['user_id'] = 'Admin'
+            if 'current_user' not in data:
+                data['current_user'] = user_id
             data['liked_time'] = datetime.now()
             print(data)
-            ps_cursor.execute(f"INSERT into events_liked (username, event_id, liked_time) VALUES (%s, %s, %s) RETURNING id",(data["user_id"], data["id"], data["liked_time"]))
+
+            ps_cursor.execute(f"SELECT * FROM events_liked where username=%s and event_id=%s",
+                              (data['current_user'], data["id"]))
             conn.commit()
-            event_id = ps_cursor.fetchone()[0]
-            if id is None:
-                ps_cursor.close()
-                print(id)
-                print("Like unsuccessful")
-                return None
+            if len(ps_cursor.fetchall()) > 0:
+                ps_cursor.execute(f"DELETE FROM events_liked where username=%s and event_id=%s returning event_id",
+                                  (data['current_user'], data['id']))
+                conn.commit()
+                event_id = ps_cursor.fetchone()[0]
+            else:
+                ps_cursor.execute(
+                    f"INSERT into events_liked (username, event_id, liked_time) VALUES (%s, %s, %s) RETURNING event_id",
+                    (data["current_user"], data["id"], data["liked_time"]))
+                conn.commit()
+                id, _, event_id = ps_cursor.fetchone()[:3]
+                if id is None:
+                    ps_cursor.close()
+                    print(id)
+                    print("Like unsuccessful")
+                    return None
             ps_cursor.close()
-            event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'], user_id=data['id'], location=data['location'], description=data['description'], date=data['date'])
+            event = EventModel(id=event_id, title=data['title'], likes=data['likes'], image=data['image'],
+                               user_id=data['id'], location=data['location'], description=data['description'],
+                               date=data['date'])
         return event
-    
-    
+
     def delete_event(self, event_id, user_id):
         conn = self.get_db()
         if conn:
             ps_cursor = conn.cursor()
             print(event_id, str(event_id))
-            ps_cursor.execute(f"DELETE FROM events WHERE event_id= %s AND username = %s;",  [event_id, user_id])
+            ps_cursor.execute(f"DELETE FROM events WHERE event_id= %s AND username = %s;", [event_id, user_id])
             conn.commit()
             ps_cursor.close()
-
 
     def add_user(self, data):
         conn = self.get_db()
@@ -198,8 +240,9 @@ class Repository:
                 data['u_lname'] = ''
 
             # print(data)
-            ps_cursor.execute(f"INSERT INTO users (username, password, u_email, u_lname, u_fname) VALUES (%s, %s, %s, %s, %s) RETURNING username",
-                              (data['username'], data['password'], data['u_email'], data['u_lname'], data['u_fname']))
+            ps_cursor.execute(
+                f"INSERT INTO users (username, password, u_email, u_lname, u_fname) VALUES (%s, %s, %s, %s, %s) RETURNING username",
+                (data['username'], data['password'], data['u_email'], data['u_lname'], data['u_fname']))
             conn.commit()
             username = ps_cursor.fetchone()[0]
             if username is None:
@@ -208,6 +251,7 @@ class Repository:
                 print("insertion unsuccessful")
                 return None
             ps_cursor.close()
-            user = UserModel(user_id=username, user_email=data['u_email'], password=data['password'], first_name=data['u_fname'], last_name=data['u_lname'])
+            user = UserModel(user_id=username, user_email=data['u_email'], password=data['password'],
+                             first_name=data['u_fname'], last_name=data['u_lname'])
         return user
 # if __name__ == '__main__':

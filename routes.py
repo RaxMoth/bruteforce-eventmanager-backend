@@ -22,16 +22,28 @@ class Event(Resource):
         #     event = self.repo.get_likes(int(event_id))
 
         if event_id is not None:
-            event = self.repo.get_event_by_id(int(event_id))
-            if event is None:
-                return {"idError": f"Event with the id {event_id} not found"}
-            return event.__dict__
-        if title is not None:
-            event = self.repo.get_event_by_title(title)
-            if event is None:
-                return {"titleError": f"Event with the title {title} not found"}
-            return event.__dict__
+            try:
+                decoded_token = auth.verify_id_token(self.uid)
+                print("User verified")
+                event = self.repo.get_event_by_id(int(event_id))
+                if event is None:
+                    return {"idError": f"Event with the id {event_id} not found"}
+                return event.__dict__
+            except Exception as e:
+                print('User unable to be verified or some other error has occured')
+                print(e)
 
+        if title is not None:
+            try:
+                decoded_token = auth.verify_id_token(self.uid)
+                print("User verified")
+                event = self.repo.get_event_by_title(title)
+                if event is None:
+                    return {"titleError": f"Event with the title {title} not found"}
+                return event.__dict__
+            except Exception as e:
+                print('User unable to be verified or some other error has occured')
+                print(e)
 
     def put(self, req=request):
         try:
@@ -40,8 +52,8 @@ class Event(Resource):
             data = req.get_json()
             event = self.repo.update_event(data)
             return event.__dict__
-        except firebase_admin._auth_utils.InvalidIdTokenError as e:
-            print('User unable to be verified.')
+        except Exception as e:
+            print('User unable to be verified or some other error has occured')
             print(e)
 
 
@@ -51,16 +63,23 @@ class Event(Resource):
             decoded_token = auth.verify_id_token(self.uid)
             print("User verified")
             self.repo.delete_event(event_id, decoded_token['user_id'])
-        except firebase_admin._auth_utils.InvalidIdTokenError as e:
-            print('User unable to be verified.')
+        except Exception as e:
+            print('User unable to be verified or some other error has occurred')
             print(e)
-            return 'User unable to be verified'
+            return 'User unable to be verified or some other error has occurred'
 
     def post(self, req=request):
-        data = req.get_json()
-        if request.endpoint == 'like_event':
-            event = self.repo.like_event(data)
-            return event.__dict__
+        try:
+            decoded_token = auth.verify_id_token(self.uid)
+            print("User verified")
+            data = req.get_json()
+            if request.endpoint == 'like_event':
+                event = self.repo.like_event(data)
+                return event.__dict__
+        except Exception as e:
+            print('User unable to be verified or some other error has occurred')
+            print(e)
+            return 'User unable to be verified or some other error has occurred'
 
 
 class User(Resource):

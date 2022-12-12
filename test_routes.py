@@ -36,3 +36,4 @@ def test_eventlist_post():
         assert event['title'] == 'test Tile 3'
 
 
+my_var = 'a'

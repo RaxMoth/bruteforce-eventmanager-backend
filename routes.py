@@ -96,6 +96,7 @@ class User(Resource):
 
     def post(self, req=request):
         data = req.get_json()
+        print(data)
         return self.repo.add_user(data).__dict__
 
 

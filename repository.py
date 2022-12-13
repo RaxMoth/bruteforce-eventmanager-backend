@@ -118,7 +118,9 @@ class Repository:
                 blob_name = "event/image_" + username + "_" + str(uuid.uuid4())
                 # print(blob_name)
                 blob = bucket.blob(blob_name)
+                print("1")
                 img_type, image = image.split(',')
+                print("img type =" , img_type)
                 decoded_image = base64.b64decode(image)
                 img_format = img_type.split('/')[1].split(';')[0]
                 # print(img_format, len(decoded_image))

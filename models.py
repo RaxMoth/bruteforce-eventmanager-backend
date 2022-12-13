@@ -21,6 +21,7 @@ class UserModel:
         self.last_name = last_name
 
 
+
 class CommentModel:
     def __init__(self, comment_id, u_comment, event_id, username, comment_date=None):
         self.comment_id = comment_id
@@ -28,3 +29,4 @@ class CommentModel:
         self.event_id = event_id
         self.username = username
         self.comment_date = comment_date
+

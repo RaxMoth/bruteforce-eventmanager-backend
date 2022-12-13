@@ -119,9 +119,9 @@ class EventList(Resource):
             print("User ID: ", decoded_token['uid'])
             data = req.get_json()
             return self.repo.add_event(data, decoded_token['uid']).__dict__
-        except:
+        except Exception as e:
             print('User unable to be verified.')
-            print("some error")
+            print(e)
             return 'User unable to be verified'
 
 

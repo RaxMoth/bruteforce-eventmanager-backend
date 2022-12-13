@@ -185,22 +185,23 @@ class Repository:
             ps_cursor = conn.cursor()
             if 'username' not in data:  # remove this!
                 data['username'] = username
-            if 'image' not in data:
+            if 'image' not in data or len(data['image']) < 1:
                 data['image'] = ''
             else:
                 print("Trying to create new image...")
                 image = data['image']
+                # print(len(image))
                 storage_client = storage.Client()
-                print(storage_client.list_buckets())
+                # print(storage_client.list_buckets())
                 bucket = storage_client.bucket("event_images_roi_training")
                 # print(bucket)
                 blob_name = "event/image_" + username + "_" + str(uuid.uuid4())
-                print(blob_name)
+                # print(blob_name)
                 blob = bucket.blob(blob_name)
                 img_type, image = image.split(',')
                 decoded_image = base64.b64decode(image)
                 img_format = img_type.split('/')[1].split(';')[0]
-                print(img_format, len(decoded_image))
+                # print(img_format, len(decoded_image))
                 blob.upload_from_string(decoded_image, content_type=img_format)
                 blob.make_public()
                 print("Image uploaded to google storage successfully. Public media link is: ", blob.media_link)

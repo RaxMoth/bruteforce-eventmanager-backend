@@ -98,7 +98,8 @@ class Repository:
         if conn:
             ps_cursor = conn.cursor()
             ps_cursor.execute(
-                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where username=%s", (current_user))
+                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where username=%s",
+                (current_user))
             event_records = ps_cursor.fetchall()
             for row in event_records:
                 ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
@@ -138,10 +139,13 @@ class Repository:
         conn = self.get_db()
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute(f"Select comment_id, event_id, u_comment, comment_date, username from comments where event_id=%s", event_id)
+            ps_cursor.execute(
+                f"Select comment_id, event_id, u_comment, comment_date, username from comments where event_id=%s",
+                event_id)
             comments_sql = ps_cursor.fetchall()
             for row in comments_sql:
-                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=row[3], username=row[4]))
+                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=row[3],
+                                             username=row[4]))
             ps_cursor.close()
         return comments
 
@@ -153,17 +157,26 @@ class Repository:
     def add_comment(self, data, current_user):
         conn = self.get_db()
         data['username'] = current_user
+        comment = None
         if conn:
             ps_cursor = conn.cursor()
             if 'comment_date' not in data:
                 data['comment_date'] = ''
             try:
-                ps_cursor.execute(f"INSERT INTO COMMENTS (u_comment, event_id, username, comment_date) VALUES (%s, %s, %s, %s) RETURNING comment_id", (data['u_comment'], data['event_id'], data['username'], data['comment_date']))
+                ps_cursor.execute(
+                    f"INSERT INTO COMMENTS (u_comment, event_id, username, comment_date) VALUES (%s, %s, %s, %s) RETURNING comment_id",
+                    (data['u_comment'], data['event_id'], data['username'], data['comment_date']))
                 conn.commit()
+
                 print("Comment posted successfully")
             except Exception as e:
                 print("Comment posting failed")
                 print(e)
+            comment_id = ps_cursor.fetchone()[0]
+            ps_cursor.close()
+            comment = CommentModel(comment_id=comment_id, u_comment=data['u_comment'], event_id=data['event_id'], username=data['username'], comment_date=data['comment_date'])
+        return comment
+
     def add_event(self, data, username):
         conn = self.get_db()
         event = None
@@ -321,6 +334,5 @@ class Repository:
             user = UserModel(user_id=username, user_email=data['u_email'], password=data['password'],
                              first_name=data['u_fname'], last_name=data['u_lname'])
         return user
-
 
 # if __name__ == '__main__':

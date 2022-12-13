@@ -1,15 +1,14 @@
 from flask_restful import Resource, request
 from flask import Request
 
-import firebase_admin
 from firebase_admin import credentials, auth
 from repository import Repository
 from flask import request
+
 # from app import get_auth
 
 repository = Repository()
-# cred = credentials.Certificate("firebase_admin/hub-roitraining1-poc-93c5-firebase-adminsdk-i8yqn-e656698e4b.json")
-# auth_app = firebase_admin.initialize_app(cred)
+
 
 class Event(Resource):
     def __init__(self, repo=Repository()):
@@ -55,8 +54,6 @@ class Event(Resource):
         except Exception as e:
             print('User unable to be verified or some other error has occured')
             print(e)
-
-
 
     def delete(self, event_id):
         try:
@@ -127,3 +124,51 @@ class EventList(Resource):
             print(e)
             return 'User unable to be verified'
 
+
+class Profile(Resource):
+    def __init__(self, repo=Repository()):
+        self.repo = repo
+        self.uid = request.headers.get('Authorization').split(' ')[1]
+
+    def get(self):
+        try:
+            decoded_token = auth.verify_id_token(self.uid)
+            if request.endpoint == 'created_by_user':
+                return [event.__dict__ for event in self.repo.get_events_by_user(decoded_token['uid'])]
+            elif request.endpoint == 'liked_by_user':
+                return [event.__dict__ for event in self.repo.get_events_liked_by_user(decoded_token['uid'])]
+
+        except Exception as e:
+            print('User unable to be verified or some other error')
+            print(e)
+            return 'User unable to be verified'
+
+
+class Comments(Resource):
+    def __init__(self, repo=Repository()):
+        self.repo = repo
+        self.uid = request.headers.get('Authorization').split(' ')[1]
+
+    def get(self, event_id):
+        try:
+            decoded_token = auth.verify_id_token(self.uid)
+            if request.endpoint == 'get_comment_by_event':
+                return [comment.__dict__ for comment in self.repo.get_comments_by_event(event_id)]
+
+        except Exception as e:
+            print('User unable to be verified or some other error')
+            print(e)
+            return 'User unable to be verified'
+
+    def post(self, req=request):
+        try:
+            decoded_token = auth.verify_id_token(self.uid)
+            print("Posting a comment...")
+            print("User ID: ", decoded_token['uid'])
+            data = req.get_json()
+            return self.repo.add_comment(data, decoded_token['uid']).__dict__
+
+        except Exception as e:
+            print('User unable to be verified or some other error.')
+            print(e)
+            return 'User unable to be verified'

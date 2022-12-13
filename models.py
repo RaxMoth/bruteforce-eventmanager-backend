@@ -22,8 +22,6 @@ class UserModel:
 
 
 
-class CommentModel:
-    def __init__(self):
-        pass
+
 
 

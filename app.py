@@ -8,7 +8,7 @@ from psycopg2 import pool
 import firebase_admin
 from firebase_admin import credentials, auth
 
-cred = credentials.Certificate(os.environ.get('FIREBASE_CRED', default='firebase_admin/hub-roitraining1-poc-93c5-firebase-adminsdk-i8yqn-e656698e4b.json'))
+cred = credentials.Certificate(os.environ.get('FIREBASE_CRED'))
 auth_app = firebase_admin.initialize_app(cred)
 
 

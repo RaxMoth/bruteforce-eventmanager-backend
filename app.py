@@ -1,6 +1,6 @@
 from flask import Flask, g, request
 from flask_restful import Api
-from routes import Event, EventList, User
+from routes import Event, EventList, User, Profile, Comments
 from flask_cors import CORS
 import os
 from psycopg2 import pool
@@ -8,7 +8,7 @@ from psycopg2 import pool
 import firebase_admin
 from firebase_admin import credentials, auth
 
-cred = credentials.Certificate(os.environ.get('FIREBASE_CRED', default='firebase_admin/hub-roitraining1-poc-93c5-firebase-adminsdk-i8yqn-e656698e4b.json'))
+cred = credentials.Certificate(os.environ.get('FIREBASE_CRED'))
 auth_app = firebase_admin.initialize_app(cred)
 
 
@@ -32,13 +32,19 @@ app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, databas
 
 api.add_resource(EventList, f'{BASE_URL}/events')
 api.add_resource(Event, f'{BASE_URL}/event/<event_id>', f'{BASE_URL}/eventbytitle/<title>')
+
 api.add_resource(Event, f'{BASE_URL}/event', endpoint ='update_event')
-api.add_resource(Event, f'{BASE_URL}/event/likes/<event_id>', endpoint ='get_#likes')
+# api.add_resource(Event, f'{BASE_URL}/event/likes/<event_id>', endpoint ='get_#likes')
 api.add_resource(Event, f'{BASE_URL}/event/like', endpoint ='like_event')
 api.add_resource(User, f'{BASE_URL}/user')
 
-# api.add_resource(Event, f'{BASE_URL}/event_by_user/<user_id>')
 
+api.add_resource(Profile, f'{BASE_URL}/profile/created_events', endpoint="created_by_user")
+api.add_resource(Profile, f'{BASE_URL}/profile/liked_events', endpoint="liked_by_user")
+api.add_resource(Comments, f'{BASE_URL}/comments/<event_id>', f'{BASE_URL}/comments')
+
+# api.add_resource(Event, f'{BASE_URL}/event_by_user/<user_id>')
+# perform cd
 
 @app.teardown_appcontext
 def close_conn(e):

@@ -43,7 +43,7 @@ api.add_resource(Profile, f'{BASE_URL}/profile/liked_events', endpoint="liked_by
 api.add_resource(Comments, f'{BASE_URL}/comments/<event_id>', f'{BASE_URL}/comments')
 
 # api.add_resource(Event, f'{BASE_URL}/event_by_user/<user_id>')
-
+# perform cd
 
 @app.teardown_appcontext
 def close_conn(e):

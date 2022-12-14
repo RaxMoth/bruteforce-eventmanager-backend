@@ -36,7 +36,7 @@ api.add_resource(Event, f'{BASE_URL}/event/<event_id>', f'{BASE_URL}/eventbytitl
 api.add_resource(Event, f'{BASE_URL}/event', endpoint ='update_event')
 # api.add_resource(Event, f'{BASE_URL}/event/likes/<event_id>', endpoint ='get_#likes')
 api.add_resource(Event, f'{BASE_URL}/event/like', endpoint ='like_event')
-api.add_resource(User, f'{BASE_URL}/user')
+api.add_resource(User, f'{BASE_URL}/user', f'{BASE_URL}/user/<username>')
 
 
 api.add_resource(Profile, f'{BASE_URL}/profile/created_events', endpoint="created_by_user")

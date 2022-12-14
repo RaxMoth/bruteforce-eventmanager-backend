@@ -85,6 +85,7 @@ class User(Resource):
         self.repo = repo
 
     def get(self, username):
+        print(username)
         if username is not None:
             user = self.repo.get_user_by_id(username)
             if user is None:
@@ -153,8 +154,7 @@ class Comments(Resource):
     def get(self, event_id):
         try:
             decoded_token = auth.verify_id_token(self.uid)
-            if request.endpoint == 'get_comment_by_event':
-                return [comment.__dict__ for comment in self.repo.get_comments_by_event(event_id)]
+            return [comment.__dict__ for comment in self.repo.get_comments_by_event(event_id)]
 
         except Exception as e:
             print('User unable to be verified or some other error')

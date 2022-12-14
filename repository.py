@@ -142,10 +142,12 @@ class Repository:
             ps_cursor = conn.cursor()
             ps_cursor.execute(
                 f"Select comment_id, event_id, u_comment, comment_date, username from comments where event_id=%s",
-                event_id)
+                [event_id])
             comments_sql = ps_cursor.fetchall()
             for row in comments_sql:
-                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=row[3],
+                print("username", row[4])
+                print("comment", row[2])
+                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=str(row[3]),
                                              username=row[4]))
             ps_cursor.close()
         return comments
@@ -158,11 +160,12 @@ class Repository:
     def add_comment(self, data, current_user):
         conn = self.get_db()
         data['username'] = current_user
+        print(current_user)
         comment = None
         if conn:
             ps_cursor = conn.cursor()
             if 'comment_date' not in data:
-                data['comment_date'] = ''
+                data['comment_date'] = str(datetime.now())
             try:
                 ps_cursor.execute(
                     f"INSERT INTO COMMENTS (u_comment, event_id, username, comment_date) VALUES (%s, %s, %s, %s) RETURNING comment_id",
@@ -245,6 +248,7 @@ class Repository:
                 user = UserModel(user_id=row[0], password=row[1], user_email=row[2], first_name=row[3],
                                  last_name=row[4])
             ps_cursor.close()
+            print(user.first_name, user.last_name, user.user_email)
         return user
 
     def update_event(self, data):

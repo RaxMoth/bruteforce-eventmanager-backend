@@ -12,7 +12,6 @@ cred = credentials.Certificate(os.environ.get('FIREBASE_CRED'))
 auth_app = firebase_admin.initialize_app(cred)
 
 
-
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -33,10 +32,12 @@ app.config['pSQL_pool'] = pool.SimpleConnectionPool(MIN, MAX, host=host, databas
 
 api.add_resource(EventList, f'{BASE_URL}/events')
 api.add_resource(Event, f'{BASE_URL}/event/<event_id>', f'{BASE_URL}/eventbytitle/<title>')
-api.add_resource(Event, f'{BASE_URL}/event', endpoint='update_event')
+
+api.add_resource(Event, f'{BASE_URL}/event', endpoint ='update_event')
 # api.add_resource(Event, f'{BASE_URL}/event/likes/<event_id>', endpoint ='get_#likes')
-api.add_resource(Event, f'{BASE_URL}/event/like', endpoint='like_event')
-api.add_resource(User, f'{BASE_URL}/user/<username>')
+api.add_resource(Event, f'{BASE_URL}/event/like', endpoint ='like_event')
+api.add_resource(User, f'{BASE_URL}/user')
+
 
 api.add_resource(Profile, f'{BASE_URL}/profile/created_events', endpoint="created_by_user")
 api.add_resource(Profile, f'{BASE_URL}/profile/liked_events', endpoint="liked_by_user")

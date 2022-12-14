@@ -199,7 +199,9 @@ class Repository:
                 blob_name = "event/image_" + username + "_" + str(uuid.uuid4())
                 # print(blob_name)
                 blob = bucket.blob(blob_name)
+                print("1")
                 img_type, image = image.split(',')
+                print("img type =" , img_type)
                 decoded_image = base64.b64decode(image)
                 img_format = img_type.split('/')[1].split(';')[0]
                 # print(img_format, len(decoded_image))
@@ -312,19 +314,18 @@ class Repository:
             ps_cursor.close()
 
     def add_user(self, data):
+        user  = self.get_user_by_id(data['username'])
+        if (user is not None):
+            print("user already exists")
+            return self.get_user_by_id(data['username'])
         conn = self.get_db()
         user = None
         if conn:
             ps_cursor = conn.cursor()
-            if 'u_fname' not in data:  # remove this!
-                data['u_fname'] = 'Admin'
-            if 'u_lname' not in data:
-                data['u_lname'] = ''
-
             # print(data)
             ps_cursor.execute(
-                f"INSERT INTO users (username, password, u_email, u_lname, u_fname) VALUES (%s, %s, %s, %s, %s) RETURNING username",
-                (data['username'], data['password'], data['u_email'], data['u_lname'], data['u_fname']))
+                f"INSERT INTO users (username, pass, u_email, u_lname, u_fname) VALUES (%s, %s, %s, %s, %s) RETURNING username",
+                (data['username'], data['uid'], data['email'], data['last_name'], data['first_name']))
             conn.commit()
             username = ps_cursor.fetchone()[0]
             if username is None:
@@ -333,8 +334,8 @@ class Repository:
                 print("insertion unsuccessful")
                 return None
             ps_cursor.close()
-            user = UserModel(user_id=username, user_email=data['u_email'], password=data['password'],
-                             first_name=data['u_fname'], last_name=data['u_lname'])
+            user = UserModel(user_id=username, user_email=data['email'], password=data['uid'],
+                             first_name=data['first_name'], last_name=data['last_name'])
         return user
 
 # if __name__ == '__main__':

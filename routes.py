@@ -136,9 +136,10 @@ class Profile(Resource):
         try:
             decoded_token = auth.verify_id_token(self.uid)
             if request.endpoint == 'created_by_user':
-                return [event.__dict__ for event in self.repo.get_events_by_user(decoded_token['uid'] if profile_id is not None else profile_id)]
+                print(profile_id)
+                return [event.__dict__ for event in self.repo.get_events_by_user(decoded_token['uid'] if profile_id is None else profile_id)]
             elif request.endpoint == 'liked_by_user':
-                return [event.__dict__ for event in self.repo.get_events_liked_by_user(decoded_token['uid'] if profile_id is not None else profile_id)]
+                return [event.__dict__ for event in self.repo.get_events_liked_by_user(decoded_token['uid'] if profile_id is None else profile_id)]
 
         except Exception as e:
             print('User unable to be verified or some other error')

@@ -102,6 +102,7 @@ class Repository:
     def get_events_liked_by_user(self, current_user):
         event_list = []
         conn = self.get_db()
+        print(current_user)
         if conn:
             ps_cursor = conn.cursor()
             ps_cursor.execute(

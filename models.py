@@ -12,21 +12,24 @@ class EventModel:
 
 
 class UserModel:
-    def __init__(self, user_id, user_email, password='root', first_name='', last_name=''):
+    def __init__(self, user_id, user_email, dark_mode=False, first_name='', last_name=''):
 
         self.user_id = user_id
         self.user_email = user_email
-        self.password = password
+        self.dark_mode = dark_mode
         self.first_name = first_name
         self.last_name = last_name
 
 
 
+
 class CommentModel:
-    def __init__(self, comment_id, u_comment, event_id, username, comment_date=None):
+    def __init__(self, comment_id, u_comment, event_id, username, first_name, last_name="", comment_date=None):
         self.comment_id = comment_id
         self.u_comment = u_comment
         self.event_id = event_id
         self.username = username
         self.comment_date = comment_date
+        self.first_name = first_name
+        self.last_name = last_name
 

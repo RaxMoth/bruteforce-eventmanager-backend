@@ -141,12 +141,14 @@ class Repository:
         if conn:
             ps_cursor = conn.cursor()
             ps_cursor.execute(
-                f"Select comment_id, event_id, u_comment, comment_date, username from comments where event_id=%s",
-                event_id)
+                f"Select comment_id, event_id, u_comment, comment_date, username, first_name, last_name from comments where event_id=%s",
+                [event_id])
             comments_sql = ps_cursor.fetchall()
             for row in comments_sql:
-                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=row[3],
-                                             username=row[4]))
+                print("username", row[4])
+                print("comment", row[2])
+                comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=str(row[3]),
+                                             username=row[4], first_name=row[5], last_name=row[6]))
             ps_cursor.close()
         return comments
 
@@ -158,15 +160,21 @@ class Repository:
     def add_comment(self, data, current_user):
         conn = self.get_db()
         data['username'] = current_user
+        print(current_user)
         comment = None
         if conn:
             ps_cursor = conn.cursor()
+
+            user = self.get_user_by_id(current_user)
+            data['first_name'] = user.first_name
+            data['last_name'] = user.last_name
+
             if 'comment_date' not in data:
-                data['comment_date'] = ''
+                data['comment_date'] = str(datetime.now())
             try:
                 ps_cursor.execute(
-                    f"INSERT INTO COMMENTS (u_comment, event_id, username, comment_date) VALUES (%s, %s, %s, %s) RETURNING comment_id",
-                    (data['u_comment'], data['event_id'], data['username'], data['comment_date']))
+                    f"INSERT INTO COMMENTS (u_comment, event_id, username, comment_date, first_name, last_name) VALUES (%s, %s, %s, %s, %s, %s) RETURNING comment_id",
+                    (data['u_comment'], data['event_id'], data['username'], data['comment_date'], data['first_name'], data['last_name']))
                 conn.commit()
 
                 print("Comment posted successfully")
@@ -175,7 +183,7 @@ class Repository:
                 print(e)
             comment_id = ps_cursor.fetchone()[0]
             ps_cursor.close()
-            comment = CommentModel(comment_id=comment_id, u_comment=data['u_comment'], event_id=data['event_id'], username=data['username'], comment_date=data['comment_date'])
+            comment = CommentModel(comment_id=comment_id, u_comment=data['u_comment'], event_id=data['event_id'], username=data['username'], comment_date=data['comment_date'], first_name=data['first_name'], last_name=data['last_name'])
         return comment
 
     def add_event(self, data, username):
@@ -234,7 +242,7 @@ class Repository:
         user = None
         if conn:
             ps_cursor = conn.cursor()
-            ps_cursor.execute(f"Select username, pass, u_email, u_fname, u_lname from users where username = %s;",
+            ps_cursor.execute(f"Select username, dark_mode, u_email, u_fname, u_lname from users where username = %s;",
                               (username,))
             user_records = ps_cursor.fetchall()
             if len(user_records) < 1:
@@ -242,9 +250,10 @@ class Repository:
                 ps_cursor.close()
                 return None
             for row in user_records:
-                user = UserModel(user_id=row[0], password=row[1], user_email=row[2], first_name=row[3],
+                user = UserModel(user_id=row[0], dark_mode=row[1], user_email=row[2], first_name=row[3],
                                  last_name=row[4])
             ps_cursor.close()
+            print(user.first_name, user.last_name, user.user_email)
         return user
 
     def update_event(self, data):
@@ -324,8 +333,8 @@ class Repository:
             ps_cursor = conn.cursor()
             # print(data)
             ps_cursor.execute(
-                f"INSERT INTO users (username, pass, u_email, u_lname, u_fname) VALUES (%s, %s, %s, %s, %s) RETURNING username",
-                (data['username'], data['uid'], data['email'], data['last_name'], data['first_name']))
+                f"INSERT INTO users (username, dark_mode, u_email, u_lname, u_fname) VALUES (%s, %s, %s, %s, %s) RETURNING username",
+                (data['username'], data['dark_mode'], data['email'], data['last_name'], data['first_name']))
             conn.commit()
             username = ps_cursor.fetchone()[0]
             if username is None:
@@ -334,7 +343,7 @@ class Repository:
                 print("insertion unsuccessful")
                 return None
             ps_cursor.close()
-            user = UserModel(user_id=username, user_email=data['email'], password=data['uid'],
+            user = UserModel(user_id=username, user_email=data['email'], dark_mode=data['dark_mode'],
                              first_name=data['first_name'], last_name=data['last_name'])
         return user
 

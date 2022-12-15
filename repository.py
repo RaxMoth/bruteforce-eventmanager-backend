@@ -15,7 +15,7 @@ class Repository:
         if conn:
             ps_cursor = conn.cursor()
             ps_cursor.execute(
-                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events order by eventdate")
+                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events order by eventdate desc")
             event_records = ps_cursor.fetchall()
             for row in event_records:
                 ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",

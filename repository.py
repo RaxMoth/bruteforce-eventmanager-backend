@@ -130,8 +130,10 @@ class Repository:
                 [event_id])
             comments_sql = ps_cursor.fetchall()
             for row in comments_sql:
+
                 # print("username", row[4])
                 # print("comment", row[2])
+
                 comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=str(row[3]),
                                              username=row[4], first_name=row[5], last_name=row[6]))
             ps_cursor.close()
@@ -145,7 +147,9 @@ class Repository:
     def add_comment(self, data, current_user):
         conn = self.get_db()
         data['username'] = current_user
+
         # print(current_user)
+
         comment = None
         if conn:
             ps_cursor = conn.cursor()

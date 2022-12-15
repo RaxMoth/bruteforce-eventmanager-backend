@@ -8,20 +8,6 @@ from datetime import datetime
 from google.cloud import storage
 
 
-# user1 = UserModel(1, 'Lalit')
-# user2 = UserModel(2, 'Max')
-# event1 = EventModel(1, 'Event 1')
-# event2 = EventModel(2, 'Event 2')
-# event3 = EventModel(3, 'Event 3')
-# event4 = EventModel(4, 'Event 4')
-
-# host = os.environ['HOST']
-# database = os.environ['DATABASE']
-# db_port = os.environ['DB_PORT']
-# user = os.environ['USER']
-# password = os.environ['PASSWORD']
-
-
 class Repository:
     def get_all_events(self, current_user):
         event_list = []
@@ -29,7 +15,7 @@ class Repository:
         if conn:
             ps_cursor = conn.cursor()
             ps_cursor.execute(
-                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events")
+                "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events order by eventdate desc")
             event_records = ps_cursor.fetchall()
             for row in event_records:
                 ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
@@ -121,7 +107,6 @@ class Repository:
             ps_cursor.execute(
                 "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where event_id in (select event_id from events_liked where username=%s)",
                 (current_user,))
-            print("current user: ", current_user)
             event_records = ps_cursor.fetchall()
             for row in event_records:
                 ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",
@@ -145,6 +130,10 @@ class Repository:
                 [event_id])
             comments_sql = ps_cursor.fetchall()
             for row in comments_sql:
+
+                # print("username", row[4])
+                # print("comment", row[2])
+
                 comments.append(CommentModel(comment_id=row[0], event_id=row[1], u_comment=row[2], comment_date=str(row[3]),
                                              username=row[4], first_name=row[5], last_name=row[6]))
             ps_cursor.close()
@@ -158,6 +147,9 @@ class Repository:
     def add_comment(self, data, current_user):
         conn = self.get_db()
         data['username'] = current_user
+
+        # print(current_user)
+
         comment = None
         if conn:
             ps_cursor = conn.cursor()
@@ -204,9 +196,9 @@ class Repository:
                 blob_name = "event/image_" + username + "_" + str(uuid.uuid4())
                 # print(blob_name)
                 blob = bucket.blob(blob_name)
-                print("1")
+                # print("1")
                 img_type, image = image.split(',')
-                print("img type =" , img_type)
+                # print("img type =" , img_type)
                 decoded_image = base64.b64decode(image)
                 img_format = img_type.split('/')[1].split(';')[0]
                 # print(img_format, len(decoded_image))
@@ -226,8 +218,8 @@ class Repository:
             event_id = ps_cursor.fetchone()[0]
             if event_id is None:
                 ps_cursor.close()
-                print(event_id)
-                print("insertion unsuccessful")
+                # print(event_id)
+                print("Event insertion unsuccessful, Event id: ", str(event_id))
                 return None
             ps_cursor.close()
             event = EventModel(id=event_id, title=data['title'], likes=0, image=data['image'], user_id=data['username'],
@@ -250,7 +242,7 @@ class Repository:
                 user = UserModel(user_id=row[0], dark_mode=row[1], user_email=row[2], first_name=row[3],
                                  last_name=row[4])
             ps_cursor.close()
-            print(user.first_name, user.last_name, user.user_email)
+            # print(user.first_name, user.last_name, user.user_email)
         return user
 
     def update_event(self, data):
@@ -265,7 +257,7 @@ class Repository:
             event_id = ps_cursor.fetchone()[0]
             if event_id is None:
                 ps_cursor.close()
-                print(event_id)
+                # print(event_id)
                 print("Update unsuccessful")
                 return None
             ps_cursor.close()
@@ -275,7 +267,7 @@ class Repository:
         return event
 
     def like_event(self, data, user_id='Admin'):
-        print("liking event")
+        # print("liking event")
         conn = self.get_db()
         event = None
         if conn:
@@ -283,7 +275,7 @@ class Repository:
             if 'current_user' not in data:
                 data['current_user'] = user_id
             data['liked_time'] = datetime.now()
-            print(data)
+            # print(data)
 
             ps_cursor.execute(f"SELECT * FROM events_liked where username=%s and event_id=%s",
                               (data['current_user'], data["id"]))
@@ -301,7 +293,7 @@ class Repository:
                 id, _, event_id = ps_cursor.fetchone()[:3]
                 if id is None:
                     ps_cursor.close()
-                    print(id)
+                    # print(id)
                     print("Like unsuccessful")
                     return None
             ps_cursor.close()
@@ -314,7 +306,7 @@ class Repository:
         conn = self.get_db()
         if conn:
             ps_cursor = conn.cursor()
-            print(event_id, str(event_id))
+            # print(event_id, str(event_id))
             ps_cursor.execute(f"DELETE FROM events WHERE event_id= %s AND username = %s;", [event_id, user_id])
             conn.commit()
             ps_cursor.close()
@@ -336,7 +328,7 @@ class Repository:
             username = ps_cursor.fetchone()[0]
             if username is None:
                 ps_cursor.close()
-                print(username)
+                # print(username)
                 print("insertion unsuccessful")
                 return None
             ps_cursor.close()

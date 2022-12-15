@@ -39,8 +39,8 @@ api.add_resource(Event, f'{BASE_URL}/event/like', endpoint ='like_event')
 api.add_resource(User, f'{BASE_URL}/user', f'{BASE_URL}/user/<username>')
 
 
-api.add_resource(Profile, f'{BASE_URL}/profile/created_events', endpoint="created_by_user")
-api.add_resource(Profile, f'{BASE_URL}/profile/liked_events', endpoint="liked_by_user")
+api.add_resource(Profile, f'{BASE_URL}/profile/created_events', f'{BASE_URL}/profile/created_events/<profile_id>', endpoint="created_by_user")
+api.add_resource(Profile, f'{BASE_URL}/profile/liked_events', f'{BASE_URL}/profile/liked_events/<profile_id>', endpoint="liked_by_user")
 api.add_resource(Comments, f'{BASE_URL}/comments/<event_id>', f'{BASE_URL}/comments')
 
 # api.add_resource(Event, f'{BASE_URL}/event_by_user/<user_id>')

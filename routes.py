@@ -132,13 +132,13 @@ class Profile(Resource):
         self.repo = repo
         self.uid = request.headers.get('Authorization').split(' ')[1]
 
-    def get(self):
+    def get(self, profile_id=None):
         try:
             decoded_token = auth.verify_id_token(self.uid)
             if request.endpoint == 'created_by_user':
-                return [event.__dict__ for event in self.repo.get_events_by_user(decoded_token['uid'])]
+                return [event.__dict__ for event in self.repo.get_events_by_user(decoded_token['uid'] if profile_id is not None else profile_id)]
             elif request.endpoint == 'liked_by_user':
-                return [event.__dict__ for event in self.repo.get_events_liked_by_user(decoded_token['uid'])]
+                return [event.__dict__ for event in self.repo.get_events_liked_by_user(decoded_token['uid'] if profile_id is not None else profile_id)]
 
         except Exception as e:
             print('User unable to be verified or some other error')

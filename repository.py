@@ -8,20 +8,6 @@ from datetime import datetime
 from google.cloud import storage
 
 
-# user1 = UserModel(1, 'Lalit')
-# user2 = UserModel(2, 'Max')
-# event1 = EventModel(1, 'Event 1')
-# event2 = EventModel(2, 'Event 2')
-# event3 = EventModel(3, 'Event 3')
-# event4 = EventModel(4, 'Event 4')
-
-# host = os.environ['HOST']
-# database = os.environ['DATABASE']
-# db_port = os.environ['DB_PORT']
-# user = os.environ['USER']
-# password = os.environ['PASSWORD']
-
-
 class Repository:
     def get_all_events(self, current_user):
         event_list = []
@@ -121,7 +107,6 @@ class Repository:
             ps_cursor.execute(
                 "Select event_id, title, image, username, loc, eventdate, description, (SELECT COUNT(*) FROM events_liked WHERE events_liked.event_id = events.event_id) AS likes from events where event_id in (select event_id from events_liked where username=%s)",
                 (current_user,))
-            # print("current user: ", current_user)
             event_records = ps_cursor.fetchall()
             for row in event_records:
                 ps_cursor.execute(f"select * from events_liked where username=%s and event_id=%s",

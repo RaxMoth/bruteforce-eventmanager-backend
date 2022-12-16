@@ -337,4 +337,24 @@ class Repository:
                              first_name=data['first_name'], last_name=data['last_name'])
         return user
 
+    def update_user(self, data):
+        conn = self.get_db()
+        user = None
+        if conn:
+            ps_cursor = conn.cursor()
+            ps_cursor.execute(
+                f"UPDATE users SET dark_mode = %s,  u_email = %s, u_fname= %s, u_lname = %s WHERE username= %s  RETURNING username",
+                (data['dark_mode'], data['user_email'], data['first_name'], data['last_name'], data['user_id']))
+            conn.commit()
+            username = ps_cursor.fetchone()[0]
+            if username is None:
+                ps_cursor.close()
+                # print(event_id)
+                print("Update unsuccessful")
+                return None
+            ps_cursor.close()
+            user = UserModel(user_id=username, user_email=data['email'], dark_mode=data['dark_mode'],
+                             first_name=data['first_name'], last_name=data['last_name'])
+        return user
+
 # if __name__ == '__main__':

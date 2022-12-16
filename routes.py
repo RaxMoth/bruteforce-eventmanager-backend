@@ -83,6 +83,10 @@ class User(Resource):
 
     def __init__(self, repo=Repository()):
         self.repo = repo
+        try:
+            self.uid = request.headers.get("Authorization").split(' ')[1]
+        except:
+            pass
 
     def get(self, username):
         print(username)
@@ -94,8 +98,17 @@ class User(Resource):
 
     def post(self, req=request):
         data = req.get_json()
-        print(data)
         return self.repo.add_user(data).__dict__
+
+    def put(self, req=request):
+        try:
+            decoded_token = auth.verify_id_token(self.uid)
+            data = req.get_json()
+            user = self.repo.update_user(data)
+            return user.__dict__
+        except Exception as e:
+            print('User unable to be verified or some other error has occured')
+            print(e)
 
 
 class EventList(Resource):
